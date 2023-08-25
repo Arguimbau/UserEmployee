@@ -28,7 +28,7 @@ class EmployeeRepositoryTest
     void deleteEmployee(){
         List<Employee> lst = employeeRepository.findEmployeeByName("Anna");
         Employee emp1 = lst.get(0);
-        //userRepository.delete(emp1.getUser());
+        //userRepository.delete(emp1.getUser()); // Does not work in unit testing
         assertThrows(DataIntegrityViolationException.class, () -> userRepository.delete(emp1.getUser()));
     }
 }
