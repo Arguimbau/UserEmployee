@@ -16,7 +16,7 @@ public class User
     @JsonIgnore
     private String password;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonBackReference // Do not include in json response
     private Employee employee;
 
