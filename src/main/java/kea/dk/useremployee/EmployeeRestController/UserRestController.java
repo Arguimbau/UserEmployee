@@ -1,57 +1,71 @@
 package kea.dk.useremployee.EmployeeRestController;
 
+import kea.dk.useremployee.dto.UserConverter;
+import kea.dk.useremployee.dto.UserDTO;
 import kea.dk.useremployee.model.User;
 import kea.dk.useremployee.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-public class UserRestController
-{
+public class UserRestController {
+
     @Autowired
     UserRepository userRepository;
 
-    @GetMapping("/user")
-    public List<User> getAllUsers(){return userRepository.findAll();}
+    @Autowired
+    UserConverter userConverter;
 
+    @GetMapping("/users")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<User> userList = userRepository.findAll();
+        List<UserDTO> userDTOList = new ArrayList<>();
+        userList.forEach(user -> {
+            userDTOList.add(userConverter.toDTO(user));
+        });
+        return ResponseEntity.ok(userDTOList);
+    }
 
     @PostMapping("/user")
     @ResponseStatus(HttpStatus.CREATED)
-    public User postUser(@RequestBody User user){
+    public UserDTO postUser(@RequestBody UserDTO userDTO){
+        User user = userConverter.toEntity(userDTO);
+        user.setUserID(0);
         System.out.println(user);
-        return userRepository.save(user);
+        return userConverter.toDTO(user);
     }
 
     @PutMapping("/user/{id}")
-    public ResponseEntity<User> putStudent(@PathVariable ("id") int id,
-                                           @RequestBody User user){
-        Optional<User> optionalStudent = userRepository.findById(id);
-        if(optionalStudent.isPresent()){
+    public ResponseEntity<UserDTO> putUser(@PathVariable("id") int id,
+                                           @RequestBody UserDTO userDTO){
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isPresent()){
+            User user = userConverter.toEntity(userDTO);
             user.setUserID(id);
             userRepository.save(user);
-            //return new ResponseEntity<>(student, HttpStatus.OK);
-            return ResponseEntity.ok(user); //Samme som linjen over
+            return ResponseEntity.ok(userConverter.toDTO(user));
         }
         else {
-            //return new ResponseEntity<>(new Student(), HttpStatus.NOT_FOUND);
-            return ResponseEntity.notFound().build(); // Samme som linjen over
+            return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/user/{id}")
-    public ResponseEntity<String> deleteStudent(@PathVariable ("id") int id){
+    public ResponseEntity<String> deleteUser(@PathVariable("id") int id){
         Optional<User> optionalUser = userRepository.findById(id);
-        if(optionalUser.isPresent()){
+        if (optionalUser.isPresent()){
             userRepository.deleteById(id);
-            return ResponseEntity.ok("User Deleted");
+            return ResponseEntity.ok("User deleted");
         }
-        else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        else{
+            return ResponseEntity.notFound().build();
         }
     }
-
 }

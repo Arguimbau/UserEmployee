@@ -3,8 +3,14 @@ package kea.dk.useremployee.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class User
 {
     @Id
@@ -20,47 +26,11 @@ public class User
     @JsonBackReference // Do not include in json response
     private Employee employee;
 
-    public User(){}
-
     public User(String email, String password)
     {
         this.email = email;
         this.password = password;
     }
-
-    public int getUserID()
-    {
-        return userID;
-    }
-
-    public void setUserID(int userID)
-    {
-        this.userID = userID;
-    }
-
-    public String getEmail()
-    {
-        return email;
-    }
-
-    public void setEmail(String email)
-    {
-        this.email = email;
-    }
-
-    public String getPassword()
-    {
-        return password;
-    }
-
-    public void setPassword(String password)
-    {
-        this.password = password;
-    }
-
-
-
-
 
 
 

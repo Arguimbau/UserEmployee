@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
-public class initData implements CommandLineRunner
-{
+public class InitData implements CommandLineRunner {
+
     @Autowired
     UserRepository userRepository;
 
@@ -21,17 +21,16 @@ public class initData implements CommandLineRunner
     EmployeeRepository employeeRepository;
 
     @Override
-    public void run(String... args) throws Exception
-    {
-        User us1 = userRepository.save(new User("dummy@dummy.com", "Anna"));
-        userRepository.save(new User("dummy1@dummy.com", "dummy2"));
-        userRepository.save(new User("dummy2@dummy.com", "dummy3"));
+    public void run(String... args) throws Exception {
+        userRepository.save(new User("bjarne@aol.com", "1234"));
+        User us1 = userRepository.save(new User("anna@aol.com", "abcd"));
+        userRepository.save(new User("ib@google.com", "password"));
 
         Employee emp1 = new Employee();
         emp1.setName("Anna");
         emp1.setGender(Gender.FEMALE);
         emp1.setVegetarian(false);
-        emp1.setBorn(LocalDateTime.of(2000, 1,1,7,55,0));
+        emp1.setBorn(LocalDateTime.of(2000,1,1,7,55,0));
         emp1.setUser(us1);
         employeeRepository.save(emp1);
     }
