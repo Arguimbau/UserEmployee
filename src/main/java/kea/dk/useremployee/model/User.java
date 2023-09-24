@@ -15,14 +15,14 @@ public class User
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int userID;
+    private int id;
 
     @Column(unique = true)
     private String email;
-    @JsonIgnore
+    //@JsonIgnore
     private String password;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL,mappedBy = "user")
     @JsonBackReference // Do not include in json response
     private Employee employee;
 

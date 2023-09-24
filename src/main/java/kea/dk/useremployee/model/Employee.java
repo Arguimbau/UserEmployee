@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 public class Employee
 {
     @Id
@@ -22,8 +21,14 @@ public class Employee
     private boolean vegetarian;
 
     @OneToOne
-    @JoinColumn(name = "useridfk", referencedColumnName = "userID", nullable = false)
     private User user;
+
+    public Employee( String name, LocalDateTime born, Gender gender, boolean vegetarian ) {
+        this.name = name;
+        this.born = born;
+        this.gender = gender;
+        this.vegetarian = vegetarian;
+    }
 
 
 }

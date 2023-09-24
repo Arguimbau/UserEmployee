@@ -1,70 +1,74 @@
 package kea.dk.useremployee.EmployeeRestController;
 
-import kea.dk.useremployee.dto.EmployeeConverter;
 import kea.dk.useremployee.dto.EmployeeDTO;
-import kea.dk.useremployee.dto.UserConverter;
+import kea.dk.useremployee.dto.EmployeeNoIdDTO;
 import kea.dk.useremployee.model.Employee;
-import kea.dk.useremployee.repository.EmployeeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import kea.dk.useremployee.singleton.Registry;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static kea.dk.useremployee.singleton.Registry.employeeConverter;
+
 @RestController
 public class EmployeeRestController
 {
-    @Autowired
-    EmployeeRepository employeeRepository;
-
-    @Autowired
-    EmployeeConverter employeeConverter;
     @GetMapping("/employees")
     public ResponseEntity<List<EmployeeDTO>> getAllEmployees(){
-    List<Employee> employeeList = employeeRepository.findAll();
-    List<EmployeeDTO> employeeDTOList = new ArrayList<>();
-    employeeList.forEach(employee -> {
-        employeeDTOList.add(employeeConverter.toDTO(employee));
+    List<Employee> employees = Registry.employeeRepository.findAll();
+    List<EmployeeDTO> employeeDTOs = new ArrayList<>();
+    employees.forEach(employee -> {
+        employeeDTOs.add(Registry.employeeConverter.toDTO(employee));
     });
-        return ResponseEntity.ok(employeeDTOList);
+        return ResponseEntity.ok(employeeDTOs);
     }
 
     @PostMapping("/employee")
     @ResponseStatus(HttpStatus.CREATED)
-    public EmployeeDTO postEmployee(@RequestBody EmployeeDTO employeeDTO){
-        Employee employee = employeeConverter.toEntity(employeeDTO);
-        System.out.println(employee);
-        return employeeConverter.toDTO(employee);
+    public ResponseEntity<EmployeeDTO> postEmployee(@RequestBody EmployeeNoIdDTO employeeDTO){
+        try {
+            Employee employee = Registry.employeeConverter.toEntity(employeeDTO);
+            Registry.employeeRepository.save(employee);
+            return ResponseEntity.ok(Registry.employeeConverter.toDTO(employee));
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 
     @PutMapping("/employee/{id}")
-    public ResponseEntity<EmployeeDTO> putStudent(@PathVariable ("id") int id,
-                                              @RequestBody EmployeeDTO employeeDTO){
-        Optional<Employee> optionalStudent = employeeRepository.findById(id);
-        if(optionalStudent.isPresent()){
-            Employee employee = employeeConverter.toEntity(employeeDTO);
-            employee.setId(id);
-            employeeRepository.save(employee);
-            //return new ResponseEntity<>(student, HttpStatus.OK);
-            return ResponseEntity.ok(employeeConverter.toDTO(employee)); //Samme som linjen over
-        }
-        else {
-            //return new ResponseEntity<>(new Student(), HttpStatus.NOT_FOUND);
-            return ResponseEntity.notFound().build(); // Samme som linjen over
+    public ResponseEntity<String> putStudent(@PathVariable ("id") int id, @RequestBody EmployeeNoIdDTO employeeDTO) {
+        Optional<Employee> optionalEmployee = Registry.employeeRepository.findById(id);
+        if (optionalEmployee.isPresent()) {
+            try {
+                Employee employee = employeeConverter.mergeToEntity(id, employeeDTO);
+                Registry.employeeRepository.save(employee);
+                return ResponseEntity.ok("Employee updated");
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
+
     @DeleteMapping("/employee/{id}")
     public ResponseEntity<String> deleteEmployee(@PathVariable ("id") int id){
-        Optional<Employee> optionalStudent = employeeRepository.findById(id);
-        if(optionalStudent.isPresent()){
-            employeeRepository.deleteById(id);
-            return ResponseEntity.ok("Employee Deleted");
-        }
-        else {
+        Employee employee = Registry.employeeRepository.findById(id).orElse(null);
+        if (employee != null){
+            if (employee.getUser() != null){
+                employee.getUser().setEmployee(null);
+                Registry.userRepository.save(employee.getUser());
+            }
+            Registry.employeeRepository.deleteById(id);
+            return ResponseEntity.ok("Employee deleted");
+        }else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Employee not found");
         }
     }
